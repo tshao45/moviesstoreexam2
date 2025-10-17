@@ -26,17 +26,18 @@ class Movie(models.Model):
         ratings = self.ratings.all()
         if ratings.exists():
             average = sum(float(r.score) for r in ratings) / ratings.count()
-            return round(average, 1)
-        return 0.0
+            return round(average,1)
+        return 0
+    
 
 class Rating(models.Model):
     movie = models.ForeignKey(Movie, related_name="ratings", on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    score = models.PositiveSmallIntegerField() # THIS WILL BETWEEN 1-5
-    created_at = models.DateTimeField(auto_now_add=True) # Current date
+    score = models.PositiveSmallIntegerField() # 1-5
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('movie', 'user') # primary key, UNIQUE
+        unique_together = ('movie', 'user') # EVERY RATING IS 1-1, no duplicates
 
 class Review(models.Model):
     id = models.AutoField(primary_key=True)

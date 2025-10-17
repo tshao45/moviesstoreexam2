@@ -18,25 +18,26 @@ def index(request):
 def show(request, id):
     movie = Movie.objects.get(id=id)
     reviews = Review.objects.filter(movie=movie)
-
-    user_rating = None
+    
     if request.user.is_authenticated:
-        user_rating = Rating.objects.filter(movie=movie, user=request.user).first()
+        user_rating = movie.ratings.filter(user=request.user).first()
         if user_rating:
             user_rating = user_rating.score
-    template_data = {'title': movie.name, 'movie': movie, 'reviews': reviews, 'average_rating': movie.average_rating(), 'user_rating': user_rating, 'rating_range': range(1,6)}
+    average_rating = movie.average_rating()
+    template_data = {'title': movie.name, 'movie': movie, 'reviews': reviews, 'average_rating': average_rating, 'user_rating': user_rating,}
 
     return render(request, 'movies/show.html',
                   {'template_data': template_data})
 
+
 @login_required
-def rate_movie(request, movie_id):
-    if request.method == "POST":
-        movie = get_object_or_404(Movie, id=movie_id)
-        score = int(request.POST.get('score', 0)) # FORM WITH A SCORE
-        if score >= 1 and score <= 5:
-            rating, created = Rating.objects.update_or_create(movie=movie, user=request.user, defaults={'score': score})
-    return redirect('movies.show', id=movie_id)
+def rate_movie(request, id):
+    if request.method == 'POST' and 'score' in request.POST:
+        movie = Movie.objects.get(id=id)
+        rating_value = int(request.POST.get('score', 0))
+        if 1 <= rating_value <= 5:
+            rating, created = movie.ratings.update_or_create(movie=movie, user=request.user, defaults={'score': rating_value})
+    return redirect('movies.show', id=id)
 
 @login_required
 def create_review(request, id):
